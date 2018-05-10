@@ -12,7 +12,7 @@ const mockActions = {
 };
 jest.setMock(require.resolve('../../src/actions/auth'), mockActions);
 
-const { reducers } = require('../../src');
+const { reducerFactory } = require('../../src');
 
 let reducer;
 
@@ -66,7 +66,7 @@ function testReducer(istate) {
 
 describe('Default reducer', () => {
   beforeAll(() => {
-    reducer = reducers.auth.default;
+    reducer = reducerFactory.authDefault;
   });
 
   testReducer({
@@ -76,7 +76,7 @@ describe('Default reducer', () => {
 
 describe('Factory without server side rendering', () => {
   beforeAll((done) => {
-    reducers.auth.factory().then((res) => {
+    reducerFactory.authReducer().then((res) => {
       reducer = res;
       done();
     });
@@ -92,7 +92,7 @@ describe('Factory without server side rendering', () => {
 
 describe('Factory with server side rendering', () => {
   beforeAll((done) => {
-    reducers.auth.factory({
+    reducerFactory.authReducer({
       auth: {
         tokenV2: 'Token V2',
         tokenV3: 'Token V3',

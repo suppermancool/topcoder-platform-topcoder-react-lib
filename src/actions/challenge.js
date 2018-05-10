@@ -200,5 +200,6 @@ export default createActions({
     UNREGISTER_DONE: unregisterDone,
     UPDATE_CHALLENGE_INIT: updateChallengeInit,
     UPDATE_CHALLENGE_DONE: updateChallengeDone,
+    SELECT_TAB: _.identity,
   },
 });

@@ -6,6 +6,22 @@ import _ from 'lodash';
 import { createActions } from 'redux-actions';
 import { decodeToken } from 'tc-accounts';
 import { getApiV3 } from '../services/api';
+import { services } from '../services';
+
+const getGroupService = services.groups.getService;
+
+/**
+ * Creates the action for joining the group.
+ * @param {String} token Topcoder auth token V3.
+ * @param {String} groupId
+ * @param {String} memberId
+ */
+/* TODO: Should be updated to add member to all groups related to the community.
+ */
+function joinDone(token, groupId, memberId) {
+  const service = getGroupService(token);
+  return service.addMember(groupId, memberId, 'user');
+}
 
 /**
  * Loads profile of the authenticated user.
@@ -29,7 +45,7 @@ function loadProfileDone(userTokenV3) {
 export default createActions({
   AUTH: {
     LOAD_PROFILE: loadProfileDone,
-
+    JOIN_DONE: joinDone,
     /* Given TC auth token V2, this action writes it into state.auth.tokenV2. */
     SET_TC_TOKEN_V2: _.identity,
 

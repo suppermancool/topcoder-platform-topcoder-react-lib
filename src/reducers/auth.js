@@ -39,6 +39,13 @@ function create(initialState, mergeReducers = {}) {
       tokenV3: payload,
       user: payload ? decodeToken(payload) : null,
     }),
+    [actions.auth.joinDone]: (state, { payload }) => ({
+      ...state,
+      profile: {
+        ...state.profile,
+        groups: state.profile.groups.concat({ id: payload.groupId.toString() }),
+      },
+    }),
     ...mergeReducers,
   }, _.defaults(initialState, {
     authenticating: true,

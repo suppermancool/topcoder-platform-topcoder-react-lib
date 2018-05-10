@@ -199,6 +199,60 @@ function onAgreeTermDone(state, action) {
 }
 
 /**
+ * Opens the specified instance of terms modal + selects the terms to show in
+ * there, although the exact functioning of that functionality was not
+ * documented, thus has to be tracked.
+ * @param {Object} state
+ * @param {Object} action
+ * @return {Object} New state.
+ */
+function onOpenTermsModal(state, action) {
+  const { modalInstanceUuid } = action.payload;
+
+  let { selectedTerm } = action.payload;
+  if (!selectedTerm) {
+    selectedTerm = _.find(state.terms, t => !t.agreed) || state.terms[0];
+  }
+
+  return {
+    ...state,
+    openTermsModalUuid: modalInstanceUuid,
+    selectedTerm,
+    viewOnly: Boolean(action.payload.selectedTerm),
+  };
+}
+
+/**
+ * Closes the specified terms modal, if necessary.
+ * @param {Object} state
+ * @param {Object} action
+ * @return {Object} New state.
+ */
+function onCloseTermsModal(state, { payload }) {
+  if (payload !== state.openTermsModalUuid
+  && state.openTermsModalUuid !== 'ANY') return state;
+  return { ...state, openTermsModalUuid: '' };
+}
+
+/**
+ * Handles TERMS/SIGN_DOCU action.
+ * @param {Object} state
+ * @param {Object} action
+ * @return {Object} New state.
+ */
+function onSignDocu(state, action) {
+  const terms = _.cloneDeep(state.terms);
+  const term = _.find(terms, ['termsOfUseId', action.payload]);
+  term.agreed = true;
+  const selectedTerm = _.find(terms, t => !t.agreed);
+  return {
+    ...state,
+    terms,
+    selectedTerm,
+  };
+}
+
+/**
  * Creates a new Profile reducer with the specified initial state.
  * @param {Object} initialState Optional. Initial state.
  * @param {Object} mergeReducers Optional. Reducers to merge.
@@ -236,6 +290,10 @@ function create(initialState, mergeReducers = {}) {
       checkingStatus: true,
     }),
     [actions.terms.checkStatusDone]: onCheckStatusDone,
+    [actions.terms.openTermsModal]: onOpenTermsModal,
+    [actions.terms.closeTermsModal]: onCloseTermsModal,
+    [actions.terms.selectTerm]: (state, { payload }) => ({ ...state, selectedTerm: payload }),
+    [actions.terms.signDocu]: onSignDocu,
     ...mergeReducers,
   }, _.defaults(initialState, {
     terms: [],
@@ -267,6 +325,17 @@ export function factory(options = {}) {
   const entityType = _.get(options, 'terms.entity.type');
   const entityId = _.get(options, 'terms.entity.id');
 
+  const initialState = {
+    getTermsFailure: false,
+    terms: [],
+    openTermsModalUuid: '',
+    selectedTerm: null,
+    viewOnly: false,
+    checkingStatus: false,
+    checkStatusError: false,
+    canRegister: false,
+  } || options.initialState;
+
   if (entityType && entityId) {
     const { entity } = options.terms;
     const tokens = getOptionTokens(options);
@@ -276,11 +345,11 @@ export function factory(options = {}) {
         let state = onGetTermsInit({}, actions.terms.getTermsInit(entity));
         state = onGetTermsDone(state, termsDoneAction);
 
-        return create(_.merge(options.initialState, state), options.mergeReducers);
+        return create(_.merge(initialState, state), options.mergeReducers);
       });
   }
 
-  return Promise.resolve(create(options.initialState, options.mergeReducers));
+  return Promise.resolve(create(initialState, options.mergeReducers));
 }
 
 /* Reducer with the default initial state. */

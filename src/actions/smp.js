@@ -26,5 +26,8 @@ export default createActions({
     DELETE_SUBMISSION_DONE: deleteSubmission,
     DELETE_SUBMISSION_INIT: _.noop,
     DOWNLOAD_SUBMISSION: downloadSubmission,
+    SHOW_DETAILS: _.identity,
+    CANCEL_DELETE: _.noop,
+    CONFIRM_DELETE: _.identity,
   },
 });

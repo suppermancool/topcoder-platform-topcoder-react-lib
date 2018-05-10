@@ -6,7 +6,7 @@ import * as tc from './tc';
 import * as time from './time';
 import * as mock from './mock';
 import * as errors from './errors';
-import * as filter from './filter';
+import * as filter from './challenges/filter';
 
 export {
   logger,

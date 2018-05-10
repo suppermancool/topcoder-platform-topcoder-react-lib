@@ -12,6 +12,7 @@ import smpActions from '../actions/smp';
 import logger from '../utils/logger';
 import { fireErrorMessage } from '../utils/errors';
 import { getOptionTokens } from '../utils/tc';
+import { updateQuery } from '../utils/url';
 
 import mySubmissionsManagement from './my-submissions-management';
 
@@ -262,6 +263,37 @@ function onUpdateChallengeDone(state, { error, payload }) {
 }
 
 /**
+ * Handles challengeActions.toggleCheckpointFeedback action.
+ * @param {Object} state Previous state.
+ * @param {Object} action Action.
+ */
+function onToggleCheckpointFeedback(state, action) {
+  const { payload: { id, open } } = action;
+  const newCheckpointResults = _.clone(state.checkpoints.checkpointResults);
+  newCheckpointResults[id].expanded = _.isUndefined(open)
+    ? !newCheckpointResults[id].expanded : open;
+  const newCheckpoints = {
+    ...state.checkpoints,
+    checkpointResults: newCheckpointResults,
+  };
+  return {
+    ...state,
+    checkpoints: newCheckpoints,
+  };
+}
+
+/**
+ * Handles CHALLENGE/SELECT_TAB action.
+ * @param {Object} state
+ * @param {Object} action
+ * @return {Object}
+ */
+function onSelectTab(state, { payload }) {
+  updateQuery({ tab: payload });
+  return { ...state, selectedTab: payload };
+}
+
+/**
  * Creates a new Challenge reducer with the specified initial state.
  * @param {Object} initialState Optional. Initial state.
  * @param {Object} mergeReducers Optional. Reducers to merge.
@@ -299,6 +331,8 @@ function create(initialState, mergeReducers = {}) {
     [a.fetchCheckpointsDone]: onFetchCheckpointsDone,
     [a.updateChallengeInit]: onUpdateChallengeInit,
     [a.updateChallengeDone]: onUpdateChallengeDone,
+    [a.toggleCheckpointFeedback]: onToggleCheckpointFeedback,
+    [a.selectTab]: onSelectTab,
     ...mergeReducers,
   }, _.defaults(initialState, {
     details: null,
@@ -348,6 +382,14 @@ export function factory(options = {}) {
   const tokens = getOptionTokens(options);
 
   let state = options.initialState || {};
+  if (options.req) {
+    if (options.req && options.req.query && options.req.query.tab) {
+      state.selectedTab = options.req.query.tab;
+    } else {
+      state.selectedTab = 'details';
+    }
+  }
+
   const challengeId = _.get(options, 'challenge.challengeDetails.id');
   const mySubmission = _.get(options, 'challenge.challengeDetails.mySubmission');
 

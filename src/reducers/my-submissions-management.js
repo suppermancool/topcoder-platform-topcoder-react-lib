@@ -14,15 +14,32 @@ import actions from '../actions/smp';
  */
 function create(initialState, mergeReducers = {}) {
   return handleActions({
-
     [actions.smp.deleteSubmissionDone]: state => ({
       ...state,
       deletingSubmission: false,
     }),
-
     [actions.smp.deleteSubmissionInit]: state => ({
       ...state,
       deletingSubmission: true,
+    }),
+    [actions.smp.showDetails]: (state, { payload }) => {
+      const showDetails = new Set(state.showDetails);
+      if (showDetails.has(payload)) {
+        showDetails.delete(payload);
+      } else {
+        showDetails.add(payload);
+      }
+      return { ...state, showDetails };
+    },
+    [actions.smp.confirmDelete]: (state, { payload }) => ({
+      ...state,
+      showModal: true,
+      toBeDeletedId: payload,
+    }),
+    [actions.smp.cancelDelete]: state => ({
+      ...state,
+      showModal: false,
+      toBeDeletedId: 0,
     }),
     ...mergeReducers,
 
@@ -42,7 +59,12 @@ function create(initialState, mergeReducers = {}) {
  * @return Promise which resolves to the new reducer.
  */
 export function factory(options = {}) {
-  return Promise.resolve(create(options.initialState, options.mergeReducers));
+  // return Promise.resolve(create(options.initialState, options.mergeReducers));
+  return Promise.resolve(create({
+    showDetails: [],
+    showModal: false,
+    toBeDeletedId: 0,
+  } || options.initialState, options.mergeReducers));
 }
 
 /* Reducer with the default initial state. */
